@@ -19,7 +19,9 @@
       }
     ],
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@warframe/json/*": ["./node_modules/warframe-items/data/json/*.json"],
+      "@warframe/img/*": ["./node_modules/warframe-items/data/img/*"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],

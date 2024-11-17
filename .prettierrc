@@ -1,0 +1,15 @@
+{
+  "semi": false,
+  "trailingComma": "none",
+  "singleQuote": true,
+  "tabWidth": 2,
+  "experimentalTernaries": true,
+  "overrides": [
+    {
+      "files": ["libs/**/*"],
+      "options": {
+        "prettier": false
+      }
+    }
+  ]
+}
