@@ -11,13 +11,14 @@ import {
   useArchonShardStore,
   type EquippedShard
 } from '@/stores/archonShardStore'
+import { useBonusDialogStore } from '@/stores/bonusDialogStore'
 import { SHARD_COLORS, type ShardColor } from '@/types/ArchonShard'
 import { getArchonShard } from '@/util/getArchonShard'
 import { AnimatePresence, motion } from 'framer-motion'
 import * as React from 'react'
 import { createPortal } from 'react-dom'
 import { ArchonShard } from './ArchonShard'
-import { useBonusDialogStore } from '@/stores/bonusDialogStore'
+import { ArchonShardSummary } from './ArchonShardSummary'
 
 const HEXAGON_SIZE = 128
 const HEXAGON_ASPECT = 1.155
@@ -50,6 +51,30 @@ const getShardTextColor = (color: ShardColor): string => {
       return 'text-yellow-500'
     default:
       return 'text-muted-foreground'
+  }
+}
+
+function formatBuffValueCompact(buff: ShardBuff, tauforged: boolean): string {
+  const value = tauforged ? buff.value.tauforged : buff.value.base
+
+  if (buff.value.isPercentage) {
+    return `+${value}%`
+  }
+
+  // Special cases for different buff types
+  switch (buff.name) {
+    case 'Health Regeneration':
+      return `${value}/s`
+    case 'Blast Kill Health':
+    case 'Blast Kill Shield Regen':
+    case 'Heat Kill Critical Chance':
+      return `+${value}/kill`
+    case 'Toxin Health Recovery':
+      return `+${value}/tick`
+    case 'Initial Energy':
+      return `${value}%`
+    default:
+      return `+${value}`
   }
 }
 
@@ -141,14 +166,13 @@ function HexagonSlot({
           </TooltipTrigger>
           {equipped?.buff && (
             <div className="text-center">
-              <div className={`text-xs ${textColor} font-semibold`}>
+              <div
+                className={`text-xs ${textColor} ${equipped.tauforged ? 'font-semibold' : 'font-normal'}`}
+              >
                 {equipped.buff.name}
               </div>
               <div className="text-xs text-muted-foreground">
-                {equipped.tauforged ?
-                  equipped.buff.value.tauforged
-                : equipped.buff.value.base}
-                %
+                {formatBuffValueCompact(equipped.buff, equipped.tauforged)}
               </div>
             </div>
           )}
@@ -164,9 +188,15 @@ function HexagonSlot({
                 </div>
                 {equipped.buff && (
                   <>
-                    <div className="font-semibold mt-1">{equipped.buff.name}</div>
+                    <div className="font-semibold mt-1">
+                      {equipped.buff.name}
+                    </div>
                     <div className="text-sm text-muted-foreground">
-                      Value: {equipped.tauforged ? equipped.buff.value.tauforged : equipped.buff.value.base}%
+                      Value:{' '}
+                      {formatBuffValueCompact(
+                        equipped.buff,
+                        equipped.tauforged
+                      )}
                     </div>
                   </>
                 )}
@@ -224,7 +254,7 @@ function HexagonSlot({
                               x: x * 0.9,
                               y: y * 0.9
                             }}
-                            exit={{ opacity: 0, scale: 0.8, x: 0, y: 0 }}
+                            exit={{ opacity: 0 }}
                             transition={{ duration: ANIMATION_DURATION }}
                             whileHover={{ scale: 1.1 }}
                             whileTap={{ scale: 0.95 }}
@@ -267,7 +297,7 @@ function HexagonSlot({
                               x: x * 1.75,
                               y: y * 1.75
                             }}
-                            exit={{ opacity: 0, scale: 0.8, x: 0, y: 0 }}
+                            exit={{ opacity: 0 }}
                             transition={{ duration: ANIMATION_DURATION }}
                             whileHover={{ scale: 1.1 }}
                             whileTap={{ scale: 0.95 }}
@@ -315,7 +345,11 @@ export function ArchonShardEquip() {
   } = useArchonShardStore()
   const { openDialog } = useBonusDialogStore()
 
-  const handleSelectShard = (position: number, color: ShardColor, tauforged: boolean) => {
+  const handleSelectShard = (
+    position: number,
+    color: ShardColor,
+    tauforged: boolean
+  ) => {
     selectShard(position, { color, tauforged })
     openDialog({
       position,
@@ -329,105 +363,108 @@ export function ArchonShardEquip() {
 
   return (
     <TooltipProvider>
-      <div
-        className="relative"
-        style={
-          {
-            '--v-width': '600px',
-            '--v-height': '400px',
-            '--v-middle-offset': '120px',
-            '--hexagon-width': `${HEXAGON_SIZE}px`,
-            '--hexagon-aspect': HEXAGON_ASPECT,
-            width: 'var(--v-width)',
-            height: 'var(--v-height)'
-          } as React.CSSProperties
-        }
-      >
-        {/* Top row */}
-        <div className="absolute left-0 top-0">
-          <HexagonSlot
-            position={3}
-            equipped={equippedShards[3]}
-            onSelect={(shard) =>
-              handleSelectShard(3, shard?.color, shard?.tauforged)
-            }
-            isSelecting={selectingPosition === 3}
-            onSelectingChange={(isSelecting) =>
-              setSelectingPosition(isSelecting ? 3 : null)
-            }
-          />
-        </div>
-        <div className="absolute right-0 top-0">
-          <HexagonSlot
-            position={4}
-            equipped={equippedShards[4]}
-            onSelect={(shard) =>
-              handleSelectShard(4, shard?.color, shard?.tauforged)
-            }
-            isSelecting={selectingPosition === 4}
-            onSelectingChange={(isSelecting) =>
-              setSelectingPosition(isSelecting ? 4 : null)
-            }
-          />
-        </div>
+      <div className="flex flex-col items-center">
+        <div
+          className="relative"
+          style={
+            {
+              '--v-width': '600px',
+              '--v-height': '400px',
+              '--v-middle-offset': '120px',
+              '--hexagon-width': `${HEXAGON_SIZE}px`,
+              '--hexagon-aspect': HEXAGON_ASPECT,
+              width: 'var(--v-width)',
+              height: 'var(--v-height)'
+            } as React.CSSProperties
+          }
+        >
+          {/* Top row */}
+          <div className="absolute left-0 top-0">
+            <HexagonSlot
+              position={3}
+              equipped={equippedShards[3]}
+              onSelect={(shard) =>
+                handleSelectShard(3, shard?.color, shard?.tauforged)
+              }
+              isSelecting={selectingPosition === 3}
+              onSelectingChange={(isSelecting) =>
+                setSelectingPosition(isSelecting ? 3 : null)
+              }
+            />
+          </div>
+          <div className="absolute right-0 top-0">
+            <HexagonSlot
+              position={4}
+              equipped={equippedShards[4]}
+              onSelect={(shard) =>
+                handleSelectShard(4, shard?.color, shard?.tauforged)
+              }
+              isSelecting={selectingPosition === 4}
+              onSelectingChange={(isSelecting) =>
+                setSelectingPosition(isSelecting ? 4 : null)
+              }
+            />
+          </div>
 
-        {/* Middle row */}
-        <div
-          className="absolute left-0 top-0"
-          style={{
-            left: 'var(--v-middle-offset)',
-            top: 'var(--v-middle-offset)'
-          }}
-        >
-          <HexagonSlot
-            position={1}
-            equipped={equippedShards[1]}
-            onSelect={(shard) =>
-              handleSelectShard(1, shard?.color, shard?.tauforged)
-            }
-            isSelecting={selectingPosition === 1}
-            onSelectingChange={(isSelecting) =>
-              setSelectingPosition(isSelecting ? 1 : null)
-            }
-          />
-        </div>
-        <div
-          className="absolute right-0 top-0"
-          style={{
-            right: 'var(--v-middle-offset)',
-            top: 'var(--v-middle-offset)'
-          }}
-        >
-          <HexagonSlot
-            position={2}
-            equipped={equippedShards[2]}
-            onSelect={(shard) =>
-              handleSelectShard(2, shard?.color, shard?.tauforged)
-            }
-            isSelecting={selectingPosition === 2}
-            onSelectingChange={(isSelecting) =>
-              setSelectingPosition(isSelecting ? 2 : null)
-            }
-          />
-        </div>
+          {/* Middle row */}
+          <div
+            className="absolute left-0 top-0"
+            style={{
+              left: 'var(--v-middle-offset)',
+              top: 'var(--v-middle-offset)'
+            }}
+          >
+            <HexagonSlot
+              position={1}
+              equipped={equippedShards[1]}
+              onSelect={(shard) =>
+                handleSelectShard(1, shard?.color, shard?.tauforged)
+              }
+              isSelecting={selectingPosition === 1}
+              onSelectingChange={(isSelecting) =>
+                setSelectingPosition(isSelecting ? 1 : null)
+              }
+            />
+          </div>
+          <div
+            className="absolute right-0 top-0"
+            style={{
+              right: 'var(--v-middle-offset)',
+              top: 'var(--v-middle-offset)'
+            }}
+          >
+            <HexagonSlot
+              position={2}
+              equipped={equippedShards[2]}
+              onSelect={(shard) =>
+                handleSelectShard(2, shard?.color, shard?.tauforged)
+              }
+              isSelecting={selectingPosition === 2}
+              onSelectingChange={(isSelecting) =>
+                setSelectingPosition(isSelecting ? 2 : null)
+              }
+            />
+          </div>
 
-        {/* Bottom row */}
-        <div
-          className="absolute left-1/2 -translate-x-1/2"
-          style={{ top: 'calc(var(--v-middle-offset) * 2)' }}
-        >
-          <HexagonSlot
-            position={0}
-            equipped={equippedShards[0]}
-            onSelect={(shard) =>
-              handleSelectShard(0, shard?.color, shard?.tauforged)
-            }
-            isSelecting={selectingPosition === 0}
-            onSelectingChange={(isSelecting) =>
-              setSelectingPosition(isSelecting ? 0 : null)
-            }
-          />
+          {/* Bottom row */}
+          <div
+            className="absolute left-1/2 -translate-x-1/2"
+            style={{ top: 'calc(var(--v-middle-offset) * 2)' }}
+          >
+            <HexagonSlot
+              position={0}
+              equipped={equippedShards[0]}
+              onSelect={(shard) =>
+                handleSelectShard(0, shard?.color, shard?.tauforged)
+              }
+              isSelecting={selectingPosition === 0}
+              onSelectingChange={(isSelecting) =>
+                setSelectingPosition(isSelecting ? 0 : null)
+              }
+            />
+          </div>
         </div>
+        <ArchonShardSummary />
       </div>
     </TooltipProvider>
   )

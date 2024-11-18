@@ -18,6 +18,11 @@ export const SHARD_COLORS: ShardColor[] = [
 export type BuffValue = {
   base: number
   tauforged: number
+  isPercentage?: boolean
+  maxValue?: {
+    base: number
+    tauforged: number
+  }
 }
 
 export type ShardBuff = {
@@ -32,22 +37,25 @@ export const SHARD_BUFFS: Record<ShardColor, ShardBuff[]> = {
     {
       name: 'Melee Critical Damage',
       description: 'Increases Melee Critical Damage',
-      value: { base: 25, tauforged: 37.5 },
+      value: { base: 25, tauforged: 37.5, isPercentage: true },
       notes: [
-        'Additive with mods like Organ Shatter',
-        'Affects Exalted Weapons and abilities inheriting melee stats'
+        'Critical Damage bonus is additive with similar buffs such as Organ Shatter',
+        'Affects Exalted Weapons of the appropriate class, and abilities that inherit modded stats of melee weapons such as Whipclaw'
       ]
     },
     {
       name: 'Primary Status Chance',
       description: 'Increases Primary Weapon Status Chance',
-      value: { base: 25, tauforged: 37.5 },
-      notes: ['Additive with mods like Rifle Aptitude']
+      value: { base: 25, tauforged: 37.5, isPercentage: true },
+      notes: [
+        'Status Chance bonus is additive with similar buffs such as Rifle Aptitude',
+        'Affects Exalted Weapons of the appropriate class'
+      ]
     },
     {
       name: 'Secondary Critical Chance',
       description: 'Increases Secondary Weapon Critical Chance',
-      value: { base: 25, tauforged: 37.5 },
+      value: { base: 25, tauforged: 37.5, isPercentage: true },
       notes: ['Additive with mods like Pistol Gambit']
     },
     {
@@ -94,13 +102,17 @@ export const SHARD_BUFFS: Record<ShardColor, ShardBuff[]> = {
     {
       name: 'Health',
       description: 'Flat Health increase',
-      value: { base: 150, tauforged: 225 }
+      value: { base: 150, tauforged: 225, isPercentage: false },
+      notes: ['Flat value increase after all bonuses are applied']
     },
     {
       name: 'Shield Capacity',
       description: 'Flat Shield increase',
-      value: { base: 150, tauforged: 225 },
-      notes: ['Not available for Inaros, Kullervo, and Nidus']
+      value: { base: 150, tauforged: 225, isPercentage: false },
+      notes: [
+        'Flat value increase after all bonuses are applied',
+        "Not eligible for Inaros, Kullervo, and Nidus, as they don't possess Shields"
+      ]
     },
     {
       name: 'Energy Max',
@@ -144,9 +156,20 @@ export const SHARD_BUFFS: Record<ShardColor, ShardBuff[]> = {
   topaz: [
     {
       name: 'Blast Kill Health',
-      description: 'Health gained per Blast damage kill',
-      value: { base: 1, tauforged: 2 },
-      notes: ['Maximum of 300/450 health', 'Reset on revive']
+      description: 'Gain Health per enemy killed with Blast Damage',
+      value: {
+        base: 1,
+        tauforged: 2,
+        isPercentage: false,
+        maxValue: {
+          base: 300,
+          tauforged: 450
+        }
+      },
+      notes: [
+        'Bonus is reset upon consuming a revive',
+        'Flat value increase after all bonuses are applied'
+      ]
     },
     {
       name: 'Blast Kill Shield Regen',
@@ -154,10 +177,22 @@ export const SHARD_BUFFS: Record<ShardColor, ShardBuff[]> = {
       value: { base: 5, tauforged: 7.5 }
     },
     {
-      name: 'Heat Kill Crit Chance',
+      name: 'Heat Kill Critical Chance',
       description: 'Secondary Critical Chance per Heat Status kill',
-      value: { base: 1, tauforged: 1.5 },
-      notes: ['Maximum of 50%/75%', 'Reset on revive']
+      value: {
+        base: 1,
+        tauforged: 1.5,
+        isPercentage: true,
+        maxValue: {
+          base: 50,
+          tauforged: 75
+        }
+      },
+      notes: [
+        'Critical Chance bonus is additive with similar buffs such as Pistol Gambit',
+        'Bonus is reset upon consuming a revive',
+        'Critical Chance gained on kill and Maximum Critical Chance bonus stacks with each shard embedded for this bonus'
+      ]
     },
     {
       name: 'Radiation Ability Damage',
