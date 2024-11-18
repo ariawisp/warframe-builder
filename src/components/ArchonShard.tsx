@@ -21,8 +21,8 @@ export function ArchonShard({
     <div
       className="relative"
       style={{
-        width: `${SHARD_SIZE}px`,
-        height: `${SHARD_SIZE}px`
+        width: `${size}px`,
+        height: `${size}px`
       }}
     >
       <Image
