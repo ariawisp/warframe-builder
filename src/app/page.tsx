@@ -16,7 +16,7 @@ export default function Home() {
         <div>Mods to go here line 3</div>
         <div>Mods to go here line 4</div>
       </Card>
-      <Card className="p-8">
+      <Card className="p-8 max-w-2xl">
         <ArchonShardEquip />
       </Card>
       <ArchonShardBonusDialog />

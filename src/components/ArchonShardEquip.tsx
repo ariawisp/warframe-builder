@@ -67,8 +67,8 @@ export function ArchonShardEquip() {
 
   return (
     <TooltipProvider delayDuration={100}>
-      <div className="flex flex-col items-center w-full gap-8">
-        <main className="hexagon-container">
+      <div className="flex flex-col w-full gap-8">
+        <div className="hexagon-container">
           {/* First row */}
           <ArchonShardHexagon
             position={3}
@@ -110,7 +110,7 @@ export function ArchonShardEquip() {
             tooltipSide="bottom"
             ref={(el) => (hexagonRefs.current[0] = el)}
           />
-        </main>
+        </div>
 
         <ArchonShardSelector
           isOpen={selectingPosition !== null}
