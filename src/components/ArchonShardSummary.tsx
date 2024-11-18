@@ -4,64 +4,11 @@ import { useArchonShardStore } from '@/stores/archonShardStore'
 import {
   type ShardBuff,
   type ShardColor,
-  ADDITIVE_BONUSES
+  ADDITIVE_BONUSES,
+  formatSummaryValue,
+  getShardTextColor
 } from '@/types/ArchonShard'
 import { BUFF_ICONS } from './ArchonShardBonusDialog'
-
-const getShardTextColor = (color: ShardColor): string => {
-  switch (color) {
-    case 'azure':
-      return 'text-sky-500'
-    case 'crimson':
-      return 'text-red-500'
-    case 'amber':
-      return 'text-amber-500'
-    case 'emerald':
-      return 'text-emerald-500'
-    case 'violet':
-      return 'text-fuchsia-500'
-    case 'topaz':
-      return 'text-yellow-500'
-    default:
-      return 'text-muted-foreground'
-  }
-}
-
-function formatSummaryValue(value: number, buff: ShardBuff): string {
-  if (buff.value.isPercentage) {
-    return `+${value}%`
-  }
-
-  switch (buff.name) {
-    case 'Health Regeneration':
-      return `${value} HP/s`
-    case 'Blast Kill Health':
-      return `+${value} Health per kill`
-    case 'Blast Kill Shield Regen':
-      return `+${value} Shields per kill`
-    case 'Heat Kill Critical Chance':
-      return `+${value}% per kill`
-    case 'Toxin Health Recovery':
-      return `+${value} Health per tick`
-    case 'Initial Energy':
-    case 'Health Orb Effectiveness':
-    case 'Energy Orb Effectiveness':
-    case 'Casting Speed':
-    case 'Parkour Velocity':
-    case 'Orb Conversion':
-      return `${value}%`
-    case 'Electric Damage Bonus':
-    case 'Ability Strength':
-    case 'Ability Duration':
-    case 'Electric Status Ability Damage':
-    case 'Toxin Status Damage':
-    case 'Corrosive Ability Damage':
-    case 'Radiation Ability Damage':
-      return `+${value}%`
-    default:
-      return `+${value}`
-  }
-}
 
 export function ArchonShardSummary() {
   const { equippedShards } = useArchonShardStore()

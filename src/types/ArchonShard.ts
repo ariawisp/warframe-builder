@@ -145,7 +145,7 @@ export const SHARD_BUFFS: Record<ShardColor, ShardBuff[]> = {
     {
       name: 'Corrosive Ability Damage',
       description: 'Ability Damage bonus against Corroded enemies',
-      value: { base: 10, tauforged: 15 }
+      value: { base: 10, tauforged: 15, isPercentage: true }
     },
     {
       name: 'Corrosive Stack Increase',
@@ -287,6 +287,42 @@ export function formatBuffValueCompact(
       return `+${value}%/kill`
     case 'Toxin Health Recovery':
       return `+${value}/tick`
+    case 'Initial Energy':
+    case 'Health Orb Effectiveness':
+    case 'Energy Orb Effectiveness':
+    case 'Casting Speed':
+    case 'Parkour Velocity':
+    case 'Orb Conversion':
+      return `${value}%`
+    case 'Electric Damage Bonus':
+    case 'Ability Strength':
+    case 'Ability Duration':
+    case 'Electric Status Ability Damage':
+    case 'Toxin Status Damage':
+    case 'Corrosive Ability Damage':
+    case 'Radiation Ability Damage':
+      return `+${value}%`
+    default:
+      return `+${value}`
+  }
+}
+
+export function formatSummaryValue(value: number, buff: ShardBuff): string {
+  if (buff.value.isPercentage) {
+    return `+${value}%`
+  }
+
+  switch (buff.name) {
+    case 'Health Regeneration':
+      return `${value} HP/s`
+    case 'Blast Kill Health':
+      return `+${value} Health per kill`
+    case 'Blast Kill Shield Regen':
+      return `+${value} Shields per kill`
+    case 'Heat Kill Critical Chance':
+      return `+${value}% per kill`
+    case 'Toxin Health Recovery':
+      return `+${value} Health per tick`
     case 'Initial Energy':
     case 'Health Orb Effectiveness':
     case 'Energy Orb Effectiveness':
