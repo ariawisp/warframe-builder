@@ -53,10 +53,11 @@ export function ArchonShardSummary() {
     (acc, shard) => {
       if (!shard?.buff) return acc
 
-      const existingBuff = acc.find((b) => b.name === shard.buff.name)
+      const buff = shard.buff
+      const existingBuff = acc.find((b) => b.name === buff.name)
       if (existingBuff) {
         existingBuff.value +=
-          shard.tauforged ? shard.buff.value.tauforged : shard.buff.value.base
+          shard.tauforged ? buff.value.tauforged : buff.value.base
         if (shard.tauforged) {
           existingBuff.tauforgedCount++
         } else {
@@ -65,12 +66,13 @@ export function ArchonShardSummary() {
         existingBuff.hasTauforged = existingBuff.hasTauforged || shard.tauforged
       } else {
         acc.push({
-          name: shard.buff.name,
-          value:
-            shard.tauforged ?
-              shard.buff.value.tauforged
-            : shard.buff.value.base,
-          buff: shard.buff,
+          name: buff.name,
+          value: shard.tauforged ? buff.value.tauforged : buff.value.base,
+          buff: {
+            name: buff.name,
+            description: '',
+            value: buff.value
+          },
           normalCount: shard.tauforged ? 0 : 1,
           tauforgedCount: shard.tauforged ? 1 : 0,
           color: shard.color,

@@ -12,7 +12,11 @@ import {
   type EquippedShard
 } from '@/stores/archonShardStore'
 import { useBonusDialogStore } from '@/stores/bonusDialogStore'
-import { SHARD_COLORS, type ShardColor } from '@/types/ArchonShard'
+import {
+  SHARD_COLORS,
+  type ShardBuff,
+  type ShardColor
+} from '@/types/ArchonShard'
 import { getArchonShard } from '@/util/getArchonShard'
 import { AnimatePresence, motion } from 'framer-motion'
 import * as React from 'react'
@@ -347,9 +351,10 @@ export function ArchonShardEquip() {
 
   const handleSelectShard = (
     position: number,
-    color: ShardColor,
-    tauforged: boolean
+    color?: ShardColor,
+    tauforged?: boolean
   ) => {
+    if (!color || typeof tauforged !== 'boolean') return
     selectShard(position, { color, tauforged })
     openDialog({
       position,
