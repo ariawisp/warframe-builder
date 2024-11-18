@@ -1,7 +1,12 @@
 'use client'
 
 import { useArchonShardStore } from '@/stores/archonShardStore'
-import { type ShardBuff, type ShardColor } from '@/types/ArchonShard'
+import {
+  type ShardBuff,
+  type ShardColor,
+  ADDITIVE_BONUSES
+} from '@/types/ArchonShard'
+import { BUFF_ICONS } from './ArchonShardBonusDialog'
 
 const getShardTextColor = (color: ShardColor): string => {
   switch (color) {
@@ -39,7 +44,20 @@ function formatSummaryValue(value: number, buff: ShardBuff): string {
     case 'Toxin Health Recovery':
       return `+${value} Health per tick`
     case 'Initial Energy':
-      return `${value}% of max`
+    case 'Health Orb Effectiveness':
+    case 'Energy Orb Effectiveness':
+    case 'Casting Speed':
+    case 'Parkour Velocity':
+    case 'Orb Conversion':
+      return `${value}%`
+    case 'Electric Damage Bonus':
+    case 'Ability Strength':
+    case 'Ability Duration':
+    case 'Electric Status Ability Damage':
+    case 'Toxin Status Damage':
+    case 'Corrosive Ability Damage':
+    case 'Radiation Ability Damage':
+      return `+${value}%`
     default:
       return `+${value}`
   }
@@ -97,22 +115,25 @@ export function ArchonShardSummary() {
   }
 
   return (
-    <div className="mt-8 p-4 bg-slate-800/50 rounded-lg w-full max-w-2xl">
+    <div className="mt-8 p-4 bg-slate-800/50 rounded-lg w-full">
       <h3 className="text-lg font-semibold mb-3">Total Bonuses</h3>
       <table className="w-full">
         <thead>
           <tr className="text-left border-b border-border">
-            <th className="py-2 font-medium text-sm text-muted-foreground">
+            <th className="py-2 font-medium text-sm text-muted-foreground whitespace-nowrap">
               Bonus
             </th>
-            <th className="py-2 font-medium text-sm text-muted-foreground text-right">
+            <th className="py-2 font-medium text-sm text-muted-foreground text-right whitespace-nowrap">
               Value
             </th>
-            <th className="py-2 font-medium text-sm text-muted-foreground text-right w-16">
+            <th className="py-2 font-medium text-sm text-muted-foreground text-right w-16 whitespace-nowrap">
               Normal
             </th>
-            <th className="py-2 font-medium text-sm text-amber-500 text-right w-16">
+            <th className="py-2 font-medium text-sm text-amber-500 text-right w-16 whitespace-nowrap">
               Tau
+            </th>
+            <th className="py-2 pl-6 font-medium text-sm text-emerald-500 text-right w-24 whitespace-nowrap">
+              Bonus
             </th>
           </tr>
         </thead>
@@ -126,35 +147,68 @@ export function ArchonShardSummary() {
               tauforgedCount,
               color,
               hasTauforged
-            }) => (
-              <tr
-                key={name}
-                className="border-b border-border/50 last:border-0"
-              >
-                <td
-                  className={`py-2 ${getShardTextColor(color)} ${
-                    hasTauforged ? 'font-semibold' : 'font-normal'
-                  }`}
+            }) => {
+              const Icon = BUFF_ICONS[name]
+              const additiveBonus = ADDITIVE_BONUSES[name]
+              let totalValue = value
+
+              // Calculate additional bonus if applicable
+              if (additiveBonus) {
+                const bonusValue =
+                  normalCount * additiveBonus.perShard +
+                  tauforgedCount * additiveBonus.perTauforged
+                totalValue += bonusValue
+              }
+
+              return (
+                <tr
+                  key={name}
+                  className="border-b border-border/50 last:border-0"
                 >
-                  {name}
-                </td>
-                <td className="py-2 text-right">
-                  <span className="font-medium">
-                    {formatSummaryValue(value, buff)}
-                  </span>
-                </td>
-                <td className="py-2 text-right">
-                  <span className="text-sm text-muted-foreground">
-                    {normalCount > 0 && normalCount}
-                  </span>
-                </td>
-                <td className="py-2 text-right">
-                  <span className="text-sm text-amber-500">
-                    {tauforgedCount > 0 && tauforgedCount}
-                  </span>
-                </td>
-              </tr>
-            )
+                  <td
+                    className={`py-2 ${getShardTextColor(color)} ${
+                      hasTauforged ? 'font-semibold' : 'font-normal'
+                    } whitespace-nowrap`}
+                  >
+                    <div className="flex items-center gap-1.5">
+                      {Icon && <Icon className="w-4 h-4" />}
+                      {name}
+                    </div>
+                  </td>
+                  <td className="py-2 text-right whitespace-nowrap">
+                    <span className="font-medium">
+                      {formatSummaryValue(totalValue, buff)}
+                    </span>
+                  </td>
+                  <td className="py-2 text-right whitespace-nowrap">
+                    <span className="text-sm text-muted-foreground">
+                      {normalCount > 0 && normalCount}
+                    </span>
+                  </td>
+                  <td className="py-2 text-right whitespace-nowrap">
+                    <span className="text-sm text-amber-500">
+                      {tauforgedCount > 0 && tauforgedCount}
+                    </span>
+                  </td>
+                  <td className="py-2 pl-6 text-right whitespace-nowrap">
+                    {additiveBonus && (
+                      <span className="text-sm text-emerald-500">
+                        +
+                        {normalCount * additiveBonus.perShard +
+                          tauforgedCount * additiveBonus.perTauforged}
+                        %
+                        {normalCount > 0 && tauforgedCount > 0 && (
+                          <span className="text-xs text-muted-foreground ml-1">
+                            ({normalCount}×{additiveBonus.perShard}% +{' '}
+                            {tauforgedCount}×{additiveBonus.perTauforged}%)
+                          </span>
+                        )}
+                      </span>
+                    )}
+                  </td>
+                </tr>
+              )
+            }
           )}
         </tbody>
       </table>

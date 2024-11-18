@@ -27,7 +27,7 @@ import {
 
 const LARGE_SHARD_SIZE = 128
 
-const BUFF_ICONS: Record<string, LucideIcon> = {
+export const BUFF_ICONS: Record<string, LucideIcon> = {
   // Crimson shard buffs
   'Melee Critical Damage': Swords,
   'Primary Status Chance': Target,

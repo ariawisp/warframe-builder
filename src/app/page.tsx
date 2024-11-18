@@ -1,12 +1,12 @@
-'use client';
+'use client'
 
-import { ArchonShardEquip } from '@/components/ArchonShardEquip';
-import { ArchonShardBonusDialog } from '@/components/ArchonShardBonusDialog';
-import { Card } from '@/components/ui/card';
+import { ArchonShardBonusDialog } from '@/components/ArchonShardBonusDialog'
+import { ArchonShardEquip } from '@/components/ArchonShardEquip'
+import { Card } from '@/components/ui/card'
 
 export default function Home() {
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-4 w-full">
       <Card className="p-8">
         <div>Header breadcrumbs n stuff</div>
       </Card>
@@ -21,5 +21,5 @@ export default function Home() {
       </Card>
       <ArchonShardBonusDialog />
     </div>
-  );
+  )
 }

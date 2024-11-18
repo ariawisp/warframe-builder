@@ -22,6 +22,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import * as React from 'react'
 import { createPortal } from 'react-dom'
 import { ArchonShard } from './ArchonShard'
+import { BUFF_ICONS } from './ArchonShardBonusDialog'
 import { ArchonShardSummary } from './ArchonShardSummary'
 
 const HEXAGON_SIZE = 128
@@ -71,12 +72,26 @@ function formatBuffValueCompact(buff: ShardBuff, tauforged: boolean): string {
       return `${value}/s`
     case 'Blast Kill Health':
     case 'Blast Kill Shield Regen':
-    case 'Heat Kill Critical Chance':
       return `+${value}/kill`
+    case 'Heat Kill Critical Chance':
+      return `+${value}%/kill`
     case 'Toxin Health Recovery':
       return `+${value}/tick`
     case 'Initial Energy':
+    case 'Health Orb Effectiveness':
+    case 'Energy Orb Effectiveness':
+    case 'Casting Speed':
+    case 'Parkour Velocity':
+    case 'Orb Conversion':
       return `${value}%`
+    case 'Electric Damage Bonus':
+    case 'Ability Strength':
+    case 'Ability Duration':
+    case 'Electric Status Ability Damage':
+    case 'Toxin Status Damage':
+    case 'Corrosive Ability Damage':
+    case 'Radiation Ability Damage':
+      return `+${value}%`
     default:
       return `+${value}`
   }
@@ -171,8 +186,11 @@ function HexagonSlot({
           {equipped?.buff && (
             <div className="text-center">
               <div
-                className={`text-xs ${textColor} ${equipped.tauforged ? 'font-semibold' : 'font-normal'}`}
+                className={`text-xs ${textColor} ${equipped.tauforged ? 'font-semibold' : 'font-normal'} flex items-center justify-center gap-1`}
               >
+                {React.createElement(BUFF_ICONS[equipped.buff.name], {
+                  className: 'w-3 h-3'
+                })}
                 {equipped.buff.name}
               </div>
               <div className="text-xs text-muted-foreground">
@@ -192,7 +210,10 @@ function HexagonSlot({
                 </div>
                 {equipped.buff && (
                   <>
-                    <div className="font-semibold mt-1">
+                    <div className="font-semibold mt-1 flex items-center gap-1.5">
+                      {React.createElement(BUFF_ICONS[equipped.buff.name], {
+                        className: 'w-4 h-4'
+                      })}
                       {equipped.buff.name}
                     </div>
                     <div className="text-sm text-muted-foreground">
@@ -368,23 +389,19 @@ export function ArchonShardEquip() {
 
   return (
     <TooltipProvider>
-      <div className="flex flex-col items-center">
+      <div className="flex flex-col items-center w-full">
         <div
-          className="relative"
+          className="relative w-full h-[280px]"
           style={
             {
-              '--v-width': '600px',
-              '--v-height': '400px',
               '--v-middle-offset': '120px',
               '--hexagon-width': `${HEXAGON_SIZE}px`,
-              '--hexagon-aspect': HEXAGON_ASPECT,
-              width: 'var(--v-width)',
-              height: 'var(--v-height)'
+              '--hexagon-aspect': HEXAGON_ASPECT
             } as React.CSSProperties
           }
         >
           {/* Top row */}
-          <div className="absolute left-0 top-0">
+          <div className="absolute left-0 top-0 translate-x-[50%]">
             <HexagonSlot
               position={3}
               equipped={equippedShards[3]}
@@ -397,7 +414,7 @@ export function ArchonShardEquip() {
               }
             />
           </div>
-          <div className="absolute right-0 top-0">
+          <div className="absolute right-0 top-0 translate-x-[-50%]">
             <HexagonSlot
               position={4}
               equipped={equippedShards[4]}
@@ -413,9 +430,8 @@ export function ArchonShardEquip() {
 
           {/* Middle row */}
           <div
-            className="absolute left-0 top-0"
+            className="absolute left-[25%] translate-x-[-50%] top-0"
             style={{
-              left: 'var(--v-middle-offset)',
               top: 'var(--v-middle-offset)'
             }}
           >
@@ -432,9 +448,8 @@ export function ArchonShardEquip() {
             />
           </div>
           <div
-            className="absolute right-0 top-0"
+            className="absolute right-[25%] translate-x-[50%] top-0"
             style={{
-              right: 'var(--v-middle-offset)',
               top: 'var(--v-middle-offset)'
             }}
           >
