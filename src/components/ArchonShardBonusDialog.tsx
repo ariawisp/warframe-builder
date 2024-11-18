@@ -11,6 +11,7 @@ import {
   Battery,
   Bomb,
   Brain,
+  ChevronsUp,
   Clock,
   Flame,
   Heart,
@@ -157,14 +158,12 @@ export function ArchonShardBonusDialog() {
                       <Icon className="w-4 h-4" />
                       {buff.name}
                     </div>
-                    <div className="text-sm text-muted-foreground flex flex-wrap items-center gap-2">
+                    <div className="text-sm text-muted-foreground flex flex-wrap items-center gap-1">
                       <span className="font-medium">
                         {formatBuffValue(buff, tauforged)}
                       </span>
                       {tauforged && (
-                        <span className="text-xs bg-amber-500/10 text-amber-500 px-1.5 py-0.5 rounded">
-                          Tauforged
-                        </span>
+                        <ChevronsUp className="w-4 h-4 text-amber-500" />
                       )}
                     </div>
                     <div className="text-sm text-muted-foreground whitespace-normal">

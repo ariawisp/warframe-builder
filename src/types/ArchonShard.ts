@@ -246,3 +246,63 @@ export const ADDITIVE_BONUSES: Partial<Record<string, AdditiveBonus>> = {
     perTauforged: 15
   }
 }
+
+export const getShardTextColor = (color: ShardColor): string => {
+  switch (color) {
+    case 'azure':
+      return 'text-sky-500'
+    case 'crimson':
+      return 'text-red-500'
+    case 'amber':
+      return 'text-amber-500'
+    case 'emerald':
+      return 'text-emerald-500'
+    case 'violet':
+      return 'text-fuchsia-500'
+    case 'topaz':
+      return 'text-yellow-500'
+    default:
+      return 'text-muted-foreground'
+  }
+}
+
+export function formatBuffValueCompact(
+  buff: ShardBuff,
+  tauforged: boolean
+): string {
+  const value = tauforged ? buff.value.tauforged : buff.value.base
+
+  if (buff.value.isPercentage) {
+    return `+${value}%`
+  }
+
+  // Special cases for different buff types
+  switch (buff.name) {
+    case 'Health Regeneration':
+      return `${value}/s`
+    case 'Blast Kill Health':
+    case 'Blast Kill Shield Regen':
+      return `+${value}/kill`
+    case 'Heat Kill Critical Chance':
+      return `+${value}%/kill`
+    case 'Toxin Health Recovery':
+      return `+${value}/tick`
+    case 'Initial Energy':
+    case 'Health Orb Effectiveness':
+    case 'Energy Orb Effectiveness':
+    case 'Casting Speed':
+    case 'Parkour Velocity':
+    case 'Orb Conversion':
+      return `${value}%`
+    case 'Electric Damage Bonus':
+    case 'Ability Strength':
+    case 'Ability Duration':
+    case 'Electric Status Ability Damage':
+    case 'Toxin Status Damage':
+    case 'Corrosive Ability Damage':
+    case 'Radiation Ability Damage':
+      return `+${value}%`
+    default:
+      return `+${value}`
+  }
+}

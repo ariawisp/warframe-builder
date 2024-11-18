@@ -41,6 +41,15 @@ body {
     --sidebar-accent-foreground: 240 5.9% 10%;
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+    --hex-columns: 3;
+    --hex-width: 100px;
+    --hex-between: 10px;
+    --hex-height: calc(var(--hex-width) / 1.73);
+    --hex-margin: calc(var(--hex-width) / 2);
+    --hex-border: calc(var(--hex-margin) / 1.73);
+    --hex-transition: all 0.2s ease;
+    --color-hex-default: #0f172a;
+    --color-hex-hover: #020617;
   }
   .dark {
     --background: 222.2 47.4% 11.2%;
@@ -88,10 +97,6 @@ body {
 }
 
 @layer utilities {
-  .hexagon {
-    clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
-  }
-
   .tauforged-overlay {
     animation: tauforged-glow 2s ease-in-out infinite;
     background-size: 200% 200%;
@@ -184,5 +189,75 @@ body {
     animation-name: zoom-out;
     animation-duration: 100ms;
     animation-timing-function: ease-in;
+  }
+
+  .hexagon-container {
+    display: grid;
+    grid-template-columns: repeat(var(--hex-columns), var(--hex-width));
+    grid-auto-rows: calc(var(--hex-width) - 28.87px / 2);
+    grid-gap: var(--hex-between) var(--hex-between);
+    padding-bottom: var(--hex-border);
+    width: fit-content;
+  }
+
+  .hexagon {
+    align-items: center;
+    background-color: var(--color-hex-default);
+    cursor: pointer;
+    display: flex;
+    fill: white;
+    height: var(--hex-height);
+    justify-content: center;
+    margin: var(--hex-border) 0;
+    position: relative;
+    transition: var(--hex-transition);
+    width: var(--hex-width);
+  }
+
+  .hexagon::after,
+  .hexagon::before {
+    border-left: var(--hex-margin) solid transparent;
+    border-right: var(--hex-margin) solid transparent;
+    content: '';
+    left: 0;
+    position: absolute;
+    transition: var(--hex-transition);
+    width: 0;
+  }
+
+  .hexagon::after {
+    border-top: var(--hex-border) solid var(--color-hex-default);
+    top: 100%;
+    width: 0;
+  }
+
+  .hexagon::before {
+    border-bottom: var(--hex-border) solid var(--color-hex-default);
+    bottom: 100%;
+  }
+
+  .hexagon:nth-child(6n + 4),
+  .hexagon:nth-child(6n + 5),
+  .hexagon:nth-child(6n + 6) {
+    margin-left: calc(var(--hex-width) / 2 + var(--hex-between) / 2);
+  }
+
+  .hexagon > svg {
+    height: 75%;
+    transition: var(--hex-transition);
+  }
+
+  /* Hover effects */
+  .hexagon:hover {
+    background-color: var(--color-hex-hover);
+  }
+  .hexagon:hover::after,
+  .hexagon:hover::before {
+    border-top-color: var(--color-hex-hover);
+    border-bottom-color: var(--color-hex-hover);
+  }
+  .hexagon:hover svg {
+    fill: var(--color-hex-default);
+    stroke: var(--color-hex-default);
   }
 }

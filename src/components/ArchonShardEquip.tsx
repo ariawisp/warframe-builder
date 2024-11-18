@@ -1,374 +1,52 @@
 'use client'
 
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger
-} from '@/components/ui/tooltip'
-import { cn } from '@/lib/utils'
-import {
-  useArchonShardStore,
-  type EquippedShard
-} from '@/stores/archonShardStore'
+import { TooltipProvider } from '@/components/ui/tooltip'
+import { useArchonShardStore } from '@/stores/archonShardStore'
 import { useBonusDialogStore } from '@/stores/bonusDialogStore'
-import {
-  SHARD_COLORS,
-  type ShardBuff,
-  type ShardColor
-} from '@/types/ArchonShard'
-import { getArchonShard } from '@/util/getArchonShard'
-import { AnimatePresence, motion } from 'framer-motion'
+import { SHARD_COLORS, type ShardColor } from '@/types/ArchonShard'
 import * as React from 'react'
-import { createPortal } from 'react-dom'
-import { ArchonShard } from './ArchonShard'
-import { BUFF_ICONS } from './ArchonShardBonusDialog'
+import { ArchonShardHexagon } from './ArchonShardHexagon'
+import { ArchonShardSelector } from './ArchonShardSelector'
 import { ArchonShardSummary } from './ArchonShardSummary'
-
-const HEXAGON_SIZE = 128
-const HEXAGON_ASPECT = 1.155
-const SELECTOR_SIZE = 64
-const ANIMATION_DURATION = 0.15
-
-interface HexagonSlotProps {
-  position: number
-  equipped?: EquippedShard
-  onSelect: (shard?: EquippedShard) => void
-  isSelecting: boolean
-  onSelectingChange: (isSelecting: boolean) => void
-  className?: string
-  style?: React.CSSProperties
-}
-
-const getShardTextColor = (color: ShardColor): string => {
-  switch (color) {
-    case 'azure':
-      return 'text-sky-500'
-    case 'crimson':
-      return 'text-red-500'
-    case 'amber':
-      return 'text-amber-500'
-    case 'emerald':
-      return 'text-emerald-500'
-    case 'violet':
-      return 'text-fuchsia-500'
-    case 'topaz':
-      return 'text-yellow-500'
-    default:
-      return 'text-muted-foreground'
-  }
-}
-
-function formatBuffValueCompact(buff: ShardBuff, tauforged: boolean): string {
-  const value = tauforged ? buff.value.tauforged : buff.value.base
-
-  if (buff.value.isPercentage) {
-    return `+${value}%`
-  }
-
-  // Special cases for different buff types
-  switch (buff.name) {
-    case 'Health Regeneration':
-      return `${value}/s`
-    case 'Blast Kill Health':
-    case 'Blast Kill Shield Regen':
-      return `+${value}/kill`
-    case 'Heat Kill Critical Chance':
-      return `+${value}%/kill`
-    case 'Toxin Health Recovery':
-      return `+${value}/tick`
-    case 'Initial Energy':
-    case 'Health Orb Effectiveness':
-    case 'Energy Orb Effectiveness':
-    case 'Casting Speed':
-    case 'Parkour Velocity':
-    case 'Orb Conversion':
-      return `${value}%`
-    case 'Electric Damage Bonus':
-    case 'Ability Strength':
-    case 'Ability Duration':
-    case 'Electric Status Ability Damage':
-    case 'Toxin Status Damage':
-    case 'Corrosive Ability Damage':
-    case 'Radiation Ability Damage':
-      return `+${value}%`
-    default:
-      return `+${value}`
-  }
-}
-
-function HexagonSlot({
-  position,
-  equipped,
-  onSelect,
-  isSelecting,
-  onSelectingChange,
-  className,
-  style
-}: HexagonSlotProps) {
-  const ref = React.useRef<HTMLDivElement>(null)
-  const textColor =
-    equipped ? getShardTextColor(equipped.color) : 'text-muted-foreground'
-
-  const getHexagonCenter = React.useCallback(() => {
-    if (!ref.current) return { x: 0, y: 0 }
-    const rect = ref.current.getBoundingClientRect()
-    return {
-      x: rect.left + rect.width / 2,
-      y: rect.top + rect.height / 2
-    }
-  }, [position])
-
-  const hexagonCenter = React.useMemo(
-    () => getHexagonCenter(),
-    [getHexagonCenter, isSelecting]
-  )
-
-  React.useEffect(() => {
-    const updateCenter = () => {
-      const newCenter = getHexagonCenter()
-      if (newCenter.x !== hexagonCenter.x || newCenter.y !== hexagonCenter.y) {
-        // Force a re-render to update the center
-        onSelectingChange(false)
-        onSelectingChange(true)
-      }
-    }
-
-    window.addEventListener('resize', updateCenter)
-    window.addEventListener('scroll', updateCenter)
-
-    return () => {
-      window.removeEventListener('resize', updateCenter)
-      window.removeEventListener('scroll', updateCenter)
-    }
-  }, [hexagonCenter, getHexagonCenter, onSelectingChange])
-
-  const handleClick = (e: React.MouseEvent) => {
-    e.preventDefault()
-    onSelectingChange(true)
-  }
-
-  const handleRightClick = (e: React.MouseEvent) => {
-    e.preventDefault()
-    if (equipped) {
-      onSelect(undefined)
-    }
-  }
-
-  return (
-    <div
-      className={cn('relative', className)}
-      style={style}
-      onClick={handleClick}
-      onContextMenu={handleRightClick}
-    >
-      <Tooltip>
-        <div className="flex flex-col items-center gap-1">
-          <TooltipTrigger asChild>
-            <div
-              ref={ref}
-              className={`relative cursor-pointer bg-opacity-35 hover:bg-opacity-50 transition-all hexagon bg-slate-700 flex items-center justify-center ${
-                equipped ? 'opacity-100' : 'opacity-50 hover:opacity-75'
-              }`}
-              style={{
-                width: `${HEXAGON_SIZE}px`,
-                aspectRatio: HEXAGON_ASPECT
-              }}
-            >
-              {equipped ?
-                <ArchonShard
-                  color={equipped.color}
-                  tauforged={equipped.tauforged}
-                />
-              : <span className="text-gray-500">Empty</span>}
-            </div>
-          </TooltipTrigger>
-          {equipped?.buff && (
-            <div className="text-center">
-              <div
-                className={`text-xs ${textColor} ${equipped.tauforged ? 'font-semibold' : 'font-normal'} flex items-center justify-center gap-1`}
-              >
-                {React.createElement(BUFF_ICONS[equipped.buff.name], {
-                  className: 'w-3 h-3'
-                })}
-                {equipped.buff.name}
-              </div>
-              <div className="text-xs text-muted-foreground">
-                {formatBuffValueCompact(equipped.buff, equipped.tauforged)}
-              </div>
-            </div>
-          )}
-          {equipped && (
-            <TooltipContent
-              className={`${textColor} ${equipped.tauforged ? 'font-bold' : ''}`}
-            >
-              <div className="flex flex-col gap-1">
-                <div>
-                  <span className="capitalize">{equipped.color}</span> Archon
-                  Shard
-                  {equipped.tauforged && ' (Tauforged)'}
-                </div>
-                {equipped.buff && (
-                  <>
-                    <div className="font-semibold mt-1 flex items-center gap-1.5">
-                      {React.createElement(BUFF_ICONS[equipped.buff.name], {
-                        className: 'w-4 h-4'
-                      })}
-                      {equipped.buff.name}
-                    </div>
-                    <div className="text-sm text-muted-foreground">
-                      Value:{' '}
-                      {formatBuffValueCompact(
-                        equipped.buff,
-                        equipped.tauforged
-                      )}
-                    </div>
-                  </>
-                )}
-              </div>
-            </TooltipContent>
-          )}
-        </div>
-      </Tooltip>
-
-      {typeof window !== 'undefined' &&
-        createPortal(
-          <AnimatePresence>
-            {isSelecting && (
-              <>
-                <motion.div
-                  className="fixed inset-0 bg-background/75 backdrop-blur-sm z-[40]"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: ANIMATION_DURATION }}
-                  onClick={() => onSelectingChange(false)}
-                />
-
-                {SHARD_COLORS.map((color, index) => {
-                  const angle = (index / SHARD_COLORS.length) * 360
-                  const radius = 120
-                  const x = Math.cos(((angle - 90) * Math.PI) / 180) * radius
-                  const y = Math.sin(((angle - 90) * Math.PI) / 180) * radius
-                  const shard = getArchonShard(color, false)
-                  const tauforgedShard = getArchonShard(color, true)
-                  const textColor = getShardTextColor(color)
-                  const left = hexagonCenter.x - SELECTOR_SIZE / 2
-                  const top =
-                    hexagonCenter.y - SELECTOR_SIZE / HEXAGON_ASPECT / 2
-
-                  return (
-                    <React.Fragment key={color}>
-                      {/* Regular shard button - closer to center */}
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <motion.button
-                            className="relative z-[41]"
-                            style={{
-                              position: 'fixed',
-                              left,
-                              top,
-                              width: SELECTOR_SIZE,
-                              height: SELECTOR_SIZE,
-                              transform: `rotate(${angle}deg)`
-                            }}
-                            initial={{ opacity: 0, scale: 0.8, x: 0, y: 0 }}
-                            animate={{
-                              opacity: 1,
-                              scale: 1,
-                              x: x * 0.9,
-                              y: y * 0.9
-                            }}
-                            exit={{ opacity: 0 }}
-                            transition={{ duration: ANIMATION_DURATION }}
-                            whileHover={{ scale: 1.1 }}
-                            whileTap={{ scale: 0.95 }}
-                            onClick={(e: React.MouseEvent) => {
-                              e.stopPropagation()
-                              onSelect({ color, tauforged: false })
-                            }}
-                          >
-                            <ArchonShard
-                              color={color}
-                              tauforged={false}
-                              size={SELECTOR_SIZE}
-                            />
-                          </motion.button>
-                        </TooltipTrigger>
-                        {shard && (
-                          <TooltipContent className={textColor}>
-                            {shard.name.replace(/^<.*?> /, '')}
-                          </TooltipContent>
-                        )}
-                      </Tooltip>
-
-                      {/* Tauforged shard button - further from center */}
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <motion.button
-                            className="relative z-[41]"
-                            style={{
-                              position: 'fixed',
-                              left,
-                              top,
-                              width: SELECTOR_SIZE,
-                              height: SELECTOR_SIZE,
-                              transform: `rotate(${angle}deg)`
-                            }}
-                            initial={{ opacity: 0, scale: 0.8, x: 0, y: 0 }}
-                            animate={{
-                              opacity: 1,
-                              scale: 1,
-                              x: x * 1.75,
-                              y: y * 1.75
-                            }}
-                            exit={{ opacity: 0 }}
-                            transition={{ duration: ANIMATION_DURATION }}
-                            whileHover={{ scale: 1.1 }}
-                            whileTap={{ scale: 0.95 }}
-                            onClick={(e: React.MouseEvent) => {
-                              e.stopPropagation()
-                              onSelect({ color, tauforged: true })
-                            }}
-                          >
-                            <ArchonShard
-                              color={color}
-                              tauforged={true}
-                              size={SELECTOR_SIZE}
-                            />
-                          </motion.button>
-                        </TooltipTrigger>
-                        {tauforgedShard && (
-                          <TooltipContent className={`${textColor} font-bold`}>
-                            {`${tauforgedShard.name
-                              .replace(/^<.*?> /, '')
-                              .replace(/^Tauforged /, '')} (Tauforged)`}
-                          </TooltipContent>
-                        )}
-                      </Tooltip>
-                    </React.Fragment>
-                  )
-                })}
-              </>
-            )}
-          </AnimatePresence>,
-          document.body
-        )}
-    </div>
-  )
-}
 
 export function ArchonShardEquip() {
   const {
     equippedShards,
     selectingPosition,
-    pendingShard,
     setSelectingPosition,
     selectShard,
-    selectBonus,
-    cancelSelection
+    selectBonus
   } = useArchonShardStore()
   const { openDialog } = useBonusDialogStore()
+
+  // Add ref and position tracking
+  const hexagonRefs = React.useRef<(HTMLDivElement | null)[]>([
+    null,
+    null,
+    null,
+    null,
+    null
+  ])
+  const [selectorCenter, setSelectorCenter] = React.useState({ x: 0, y: 0 })
+
+  const getHexagonCenter = React.useCallback((position: number) => {
+    const ref = hexagonRefs.current[position]
+    if (!ref) return { x: 0, y: 0 }
+
+    const rect = ref.getBoundingClientRect()
+    return {
+      x: rect.left + rect.width / 2,
+      y: rect.top + rect.height / 2
+    }
+  }, [])
+
+  // Update center when selecting position changes
+  React.useEffect(() => {
+    if (selectingPosition !== null) {
+      const center = getHexagonCenter(selectingPosition)
+      setSelectorCenter(center)
+    }
+  }, [selectingPosition, getHexagonCenter])
 
   const handleSelectShard = (
     position: number,
@@ -388,102 +66,65 @@ export function ArchonShardEquip() {
   }
 
   return (
-    <TooltipProvider>
-      <div className="flex flex-col items-center w-full">
-        <div
-          className="relative w-full h-[280px]"
-          style={
-            {
-              '--v-middle-offset': '120px',
-              '--hexagon-width': `${HEXAGON_SIZE}px`,
-              '--hexagon-aspect': HEXAGON_ASPECT
-            } as React.CSSProperties
-          }
-        >
-          {/* Top row */}
-          <div className="absolute left-0 top-0 translate-x-[50%]">
-            <HexagonSlot
-              position={3}
-              equipped={equippedShards[3]}
-              onSelect={(shard) =>
-                handleSelectShard(3, shard?.color, shard?.tauforged)
-              }
-              isSelecting={selectingPosition === 3}
-              onSelectingChange={(isSelecting) =>
-                setSelectingPosition(isSelecting ? 3 : null)
-              }
-            />
-          </div>
-          <div className="absolute right-0 top-0 translate-x-[-50%]">
-            <HexagonSlot
-              position={4}
-              equipped={equippedShards[4]}
-              onSelect={(shard) =>
-                handleSelectShard(4, shard?.color, shard?.tauforged)
-              }
-              isSelecting={selectingPosition === 4}
-              onSelectingChange={(isSelecting) =>
-                setSelectingPosition(isSelecting ? 4 : null)
-              }
-            />
-          </div>
-
-          {/* Middle row */}
-          <div
-            className="absolute left-[25%] translate-x-[-50%] top-0"
-            style={{
-              top: 'var(--v-middle-offset)'
-            }}
-          >
-            <HexagonSlot
-              position={1}
-              equipped={equippedShards[1]}
-              onSelect={(shard) =>
-                handleSelectShard(1, shard?.color, shard?.tauforged)
-              }
-              isSelecting={selectingPosition === 1}
-              onSelectingChange={(isSelecting) =>
-                setSelectingPosition(isSelecting ? 1 : null)
-              }
-            />
-          </div>
-          <div
-            className="absolute right-[25%] translate-x-[50%] top-0"
-            style={{
-              top: 'var(--v-middle-offset)'
-            }}
-          >
-            <HexagonSlot
-              position={2}
-              equipped={equippedShards[2]}
-              onSelect={(shard) =>
-                handleSelectShard(2, shard?.color, shard?.tauforged)
-              }
-              isSelecting={selectingPosition === 2}
-              onSelectingChange={(isSelecting) =>
-                setSelectingPosition(isSelecting ? 2 : null)
-              }
-            />
-          </div>
-
+    <TooltipProvider delayDuration={100}>
+      <div className="flex flex-col items-center w-full gap-8">
+        <main className="hexagon-container">
+          {/* First row */}
+          <ArchonShardHexagon
+            position={3}
+            equipped={equippedShards[3]}
+            onClick={() => setSelectingPosition(3)}
+            tooltipSide="left"
+            ref={(el) => (hexagonRefs.current[3] = el)}
+          />
+          <div /> {/* spacer */}
+          <ArchonShardHexagon
+            position={4}
+            equipped={equippedShards[4]}
+            onClick={() => setSelectingPosition(4)}
+            tooltipSide="right"
+            ref={(el) => (hexagonRefs.current[4] = el)}
+          />
+          {/* Second row */}
+          <ArchonShardHexagon
+            position={1}
+            equipped={equippedShards[1]}
+            onClick={() => setSelectingPosition(1)}
+            tooltipSide="left"
+            ref={(el) => (hexagonRefs.current[1] = el)}
+          />
+          <ArchonShardHexagon
+            position={2}
+            equipped={equippedShards[2]}
+            onClick={() => setSelectingPosition(2)}
+            tooltipSide="right"
+            ref={(el) => (hexagonRefs.current[2] = el)}
+          />
+          <div /> {/* spacer 1 */}
+          <div /> {/* spacer 2 */}
           {/* Bottom row */}
-          <div
-            className="absolute left-1/2 -translate-x-1/2"
-            style={{ top: 'calc(var(--v-middle-offset) * 2)' }}
-          >
-            <HexagonSlot
-              position={0}
-              equipped={equippedShards[0]}
-              onSelect={(shard) =>
-                handleSelectShard(0, shard?.color, shard?.tauforged)
-              }
-              isSelecting={selectingPosition === 0}
-              onSelectingChange={(isSelecting) =>
-                setSelectingPosition(isSelecting ? 0 : null)
-              }
-            />
-          </div>
-        </div>
+          <ArchonShardHexagon
+            position={0}
+            equipped={equippedShards[0]}
+            onClick={() => setSelectingPosition(0)}
+            tooltipSide="bottom"
+            ref={(el) => (hexagonRefs.current[0] = el)}
+          />
+        </main>
+
+        <ArchonShardSelector
+          isOpen={selectingPosition !== null}
+          onClose={() => setSelectingPosition(null)}
+          onSelect={(color, tauforged) => {
+            if (selectingPosition !== null) {
+              handleSelectShard(selectingPosition, color, tauforged)
+              setSelectingPosition(null)
+            }
+          }}
+          center={selectorCenter}
+          colors={SHARD_COLORS}
+        />
+
         <ArchonShardSummary />
       </div>
     </TooltipProvider>
